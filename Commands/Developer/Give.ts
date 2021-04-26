@@ -1,5 +1,6 @@
 import {CommandOptionType, SlashCommand} from "slash-create";
 import CommandContext from "slash-create/lib/context";
+import {ItemName} from "../../Models/User/Inventory";
 import Skills, {AvailableSkills, SkillName} from "../../Models/User/Skills";
 import User from "../../Models/User/User";
 import {guildId} from "../../Util/Bot";
@@ -63,6 +64,32 @@ export default class Give extends SlashCommand {
 						}
 					]
 				},
+				{
+					name        : 'item',
+					description : 'Give a user a item',
+					type        : CommandOptionType.SUB_COMMAND,
+					options     : [
+						{
+							name        : 'user',
+							description : 'User to give a level to',
+							type        : CommandOptionType.USER,
+							required    : true,
+						},
+						{
+							name        : 'item',
+							description : 'What item to give',
+							type        : CommandOptionType.STRING,
+							required    : true,
+							choices     : Object.entries(ItemName).map(([name, value]) => ({name, value})
+							)
+						},
+						{
+							name        : 'amount',
+							description : 'How many of the item to give (defaults to 1)',
+							type        : CommandOptionType.INTEGER,
+						}
+					]
+				},
 			]
 		});
 		this.filePath = __filename;
@@ -78,6 +105,8 @@ export default class Give extends SlashCommand {
 				return this.giveBalance(ctx);
 			case 'level':
 				return this.giveLevel(ctx);
+			case 'item':
+				return this.giveItem(ctx);
 		}
 	}
 
@@ -117,9 +146,26 @@ export default class Give extends SlashCommand {
 
 		return `Successfully set ${user.toString()} to ${setLevelOptions.level} ${setLevelOptions.skill}`;
 	}
+
+	private async giveItem(ctx: CommandContext) {
+		const options = ctx.options.item as unknown as IItemOptions;
+		const user    = await User.getOrCreate(ctx.members.first().id);
+
+		user.inventoryManager().addItem(options.item, options.amount ?? 1);
+
+		await user.executeQueued();
+
+		return `Added ${options.item} (x${options.amount ?? 1}) to ${user.toString()}`;
+	}
 }
 
 export interface IBalanceOptions {
 	user?: string;
 	amount?: string;
+}
+
+export interface IItemOptions {
+	user: string;
+	item: ItemName;
+	amount?: number;
 }

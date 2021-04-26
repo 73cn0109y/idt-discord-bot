@@ -9,13 +9,12 @@ import Moderation from "../Moderation/Moderation";
 import Activities, {IActivities} from "./Activities";
 import Balance from "./Balance";
 import Cooldown, {ITimeStates} from "./Cooldown";
-import Skills, {AvailableSkills} from "./Skills";
+import Inventory, {IInventory} from "./Inventory";
+import Skills from "./Skills";
 import {IBalanceHistory, IBalances, IPreferences, ISkills, IUserStatistics, StatisticsKeys} from "./UserInformationInterfaces";
 import UserManager from "./UserManager";
 
-
 export default class User extends Model<User> {
-
 	@id
 	_id: ObjectId;
 
@@ -32,6 +31,7 @@ export default class User extends Model<User> {
 	public preferences: IPreferences;
 	public activities: { [key: string]: IActivities } = {};
 	public skills: ISkills;
+	public inventory: IInventory                      = {};
 	public createdAt: Date;
 	public updatedAt: Date;
 
@@ -40,6 +40,7 @@ export default class User extends Model<User> {
 	_cooldownManager: Cooldown     = new Cooldown(this);
 	_activitiesManager: Activities = new Activities(this);
 	_moderationManager: Moderation = new Moderation(this);
+	_inventoryManager: Inventory   = new Inventory(this);
 
 	skillManager(): Skills {
 		return this._skillsManager;
@@ -61,6 +62,9 @@ export default class User extends Model<User> {
 		return this._moderationManager;
 	}
 
+	inventoryManager(): Inventory {
+		return this._inventoryManager;
+	}
 
 	/**
 	 * We allow the user to change some settings
@@ -143,6 +147,5 @@ export default class User extends Model<User> {
 	getAvatar() {
 		return this.avatar ?? DiscordJsManager.client().user.avatarURL({format : "png"});
 	}
-
 }
 
