@@ -37,18 +37,20 @@ export default class Inventory extends SlashCommand {
 	}
 
 	async listInventory(ctx: CommandContext, user: User) {
-		if (user.inventoryManager().isEmpty()) {
-			return 'You have no items in your inventory.';
-		}
-
 		const embed = new MessageEmbed()
 			.setColor(user.color)
 			.setAuthor(user.displayName, user.getAvatar());
 
-		for (const itemName in user.inventory) {
-			const item = user.inventory[itemName];
+		if (user.inventoryManager().isEmpty()) {
+			embed.setDescription('Your inventory is currently empty');
+		} else {
+			embed.setDescription('Here is your inventory');
 
-			embed.addField(title(item.name), `x${item.amount}`);
+			for (const itemName in user.inventory) {
+				const item = user.inventory[itemName];
+
+				embed.addField(title(item.name), `x${item.amount}`);
+			}
 		}
 
 		return ctx.send({embeds : [embed]});
